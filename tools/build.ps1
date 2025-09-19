@@ -4,12 +4,16 @@ Param(
 )
 
 $ErrorActionPreference = "Stop"
-$RepoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
+
+# Make RepoRoot a STRING, not a PathInfo/array
+$RepoRoot = (Split-Path -Parent $PSScriptRoot)
+
 $SrcFolders = @(
-  Join-Path $RepoRoot "MQL5\Experts",
-  Join-Path $RepoRoot "MQL5\Indicators"
+  (Join-Path -Path $RepoRoot -ChildPath "MQL5\Experts"),
+  (Join-Path -Path $RepoRoot -ChildPath "MQL5\Indicators")
 )
-$LogsDir = Join-Path $RepoRoot "tools\build-logs"
+
+$LogsDir = Join-Path -Path $RepoRoot -ChildPath "tools\build-logs"
 New-Item -ItemType Directory -Force -Path $LogsDir | Out-Null
 
 if (-not (Test-Path $MetaEditor)) {
@@ -17,6 +21,7 @@ if (-not (Test-Path $MetaEditor)) {
   exit 1
 }
 
+# Find all .mq5 sources in Experts/Indicators
 $Targets = Get-ChildItem -Path $SrcFolders -Filter *.mq5 -Recurse -ErrorAction SilentlyContinue
 if (-not $Targets) {
   Write-Host "No .mq5 files found under MQL5\Experts or MQL5\Indicators."
@@ -27,12 +32,14 @@ $compileErrors = 0
 $compileWarnings = 0
 
 foreach ($f in $Targets) {
-  $rel = $f.FullName.Substring($RepoRoot.Path.Length + 1)
-  $logFile = Join-Path $LogsDir ($rel.Replace('\','_') + ".log")
+  # Compute a nice relative path for logs
+  $full = (Resolve-Path $f.FullName).Path
+  $rel  = $full.Substring($RepoRoot.Length + 1)
+  $logFile = Join-Path -Path $LogsDir -ChildPath ($rel.Replace('\','_') + ".log")
 
   Write-Host "Compiling $rel"
-  $args = @("/compile:$($f.FullName)", "/log:$logFile")
-  if ($IncludeDir) { $args += "/include:$IncludeDir" }
+  $args = @("/compile:`"$full`"", "/log:`"$logFile`"")
+  if ($IncludeDir) { $args += "/include:`"$IncludeDir`"" }
 
   & $MetaEditor @args | Out-Null
 
