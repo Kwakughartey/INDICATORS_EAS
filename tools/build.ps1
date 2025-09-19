@@ -1,12 +1,9 @@
 Param(
   [string]$MetaEditor = "C:\Users\kwaku\AppData\Roaming\MetaTrader 5 EXNESS\MetaEditor64.exe",
-  # Optional: if you keep shared headers in a custom folder, set it here or pass -IncludeDir
   [string]$IncludeDir = ""
 )
 
 $ErrorActionPreference = "Stop"
-
-# repo root = one level up from /tools
 $RepoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
 $SrcFolders = @(
   Join-Path $RepoRoot "MQL5\Experts",
@@ -20,7 +17,6 @@ if (-not (Test-Path $MetaEditor)) {
   exit 1
 }
 
-# Find all .mq5 sources in Experts/Indicators
 $Targets = Get-ChildItem -Path $SrcFolders -Filter *.mq5 -Recurse -ErrorAction SilentlyContinue
 if (-not $Targets) {
   Write-Host "No .mq5 files found under MQL5\Experts or MQL5\Indicators."
