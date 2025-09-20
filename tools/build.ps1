@@ -2,6 +2,12 @@ Param(
   [string]$MetaEditor = "C:\Users\kwaku\AppData\Roaming\MetaTrader 5 EXNESS\MetaEditor64.exe",
   [string]$IncludeDir = ""
 )
+# Fallback to a system-wide MetaEditor if the user-profile path isn't visible (e.g., service account)
+if (-not (Test-Path $MetaEditor)) {
+  $pf = "C:\Program Files\MetaTrader 5\metaeditor64.exe"
+  if (Test-Path $pf) { $MetaEditor = $pf }
+}
+
 
 $ErrorActionPreference = "Stop"
 
