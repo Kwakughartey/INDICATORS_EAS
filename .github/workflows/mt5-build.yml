@@ -1,0 +1,25 @@
+name: MT5 Build
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: [self-hosted, windows, metaeditor]   # labels must match your runner
+    defaults: { run: { shell: powershell } }
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build MQL5 with MetaEditor
+        run: .\tools\build.bat
+
+      - name: Upload build logs and ex5
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mt5-build-output
+          path: |
+            tools\build-logs\*.log
+            MQL5\Indicators\*.ex5
+            MQL5\Experts\*.ex5
